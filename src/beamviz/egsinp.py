@@ -354,7 +354,7 @@ mc_transport_parameters = [
     ('electron_step', 'Electron-step algorithm', Words(['PRESTA-II'])),
     ('spin_effects', 'Spin effects', Boolean()),
     ('brems_angular_sampling', 'Brems angular sampling', Words(['Simple'])),
-    ('brems_cross_sections', 'Brems cross sections', Words(['BH'])),
+    ('brems_cross_sections', 'Brems cross sections', Words(['BH', 'NIST'])),
     ('bound_compton_scattering', 'Bound Compton scattering', Boolean()),
     ('compton_cross_sections', 'Compton cross sections', Words(['default'])),
     ('pair_angular_sampling', 'Pair angular sampling', Words(['Simple'])),
@@ -567,7 +567,7 @@ def parse_egsinp(text):
             'zones': []
         }
         plane.update(pick(lines, [
-            ('nsc_zones', PositiveInteger()),
+            ('nsc_zones', NonNegativeInteger()),
             ('mzone_type', PositiveInteger())
         ]))
         if plane['mzone_type'] in [0, 1]:
