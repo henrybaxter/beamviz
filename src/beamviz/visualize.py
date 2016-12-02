@@ -5,8 +5,8 @@ import hashlib
 
 import numpy as np
 
-import egsinp
-import cgs
+from . import egsinp
+from . import cgs
 
 
 def main():
