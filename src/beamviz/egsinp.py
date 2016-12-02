@@ -707,25 +707,12 @@ def verify(d):
     return d
 
 
-def polygon_area(corners):
-    n = len(corners)
-    area = 0.0
-    for i in range(n):
-        j = (i + 1) % n
-        area += corners[i][0] * corners[j][1]
-        area -= corners[j][0] * corners[i][1]
-    area = abs(area) / 2.0
-    return area
-
-
 if __name__ == '__main__':
     import argparse
     import json
-    import statistics
     parser = argparse.ArgumentParser()
     parser.add_argument('--print', help='Print the JSON representation of this egsinp')
     parser.add_argument('--regurg', help='Read in an egsinp and write it out again (for testing)')
-    parser.add_argument('--collimator', help='Output some stats on a collimator')
     args = parser.parse_args()
     if args.print:
         egsinp = parse_egsinp(open(args.print).read())
@@ -733,37 +720,3 @@ if __name__ == '__main__':
     elif args.regurg:
         egsinp = parse_egsinp(open(args.regurg).read())
         open(args.regurg.replace('.egsinp', '.egsregurg'), 'w').write(unparse_egsinp(egsinp))
-    elif args.collimator:
-        egsinp = parse_egsinp(open(args.collimator).read())
-        blocks = [cm for cm in egsinp['cms'] if cm['type'] == 'BLOCK']
-        max_y = 0
-        max_x = 0
-        areas = []
-        for region in blocks[0]['regions']:
-            area = polygon_area([(p['x'], p['y']) for p in region['points']])
-            max_y = max(max_y, max(p['y'] for p in region['points']))
-            max_x = max(max_x, max(p['x'] for p in region['points']))
-            areas.append(area)
-        print('first block')
-        print('\tnumber of regions', len(areas))
-        print('\taverage area', statistics.mean(areas))
-        print('\ttotal area', sum(areas))
-        print('\tmax x', max_x)
-        print('\tmax y', max_y)
-        print('\tzfocus', blocks[0]['zfocus'])
-        max_y = 0
-        max_x = 0
-        areas = []
-        for region in blocks[-1]['regions']:
-            area = polygon_area([(p['x'], p['y']) for p in region['points']])
-            max_y = max(max_y, max(p['y'] for p in region['points']))
-            max_x = max(max_x, max(p['x'] for p in region['points']))
-            areas.append(area)
-        print('final block')
-        print('\tnumber of regions', len(areas))
-        print('\taverage area', statistics.mean(areas))
-        print('\ttotal area', sum(areas))
-        print('\tmax x', max_x)
-        print('\tmax y', max_y)
-        print('\tzfocus', blocks[-1]['zfocus'])
-        print('total blocks', len(blocks))

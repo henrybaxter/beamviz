@@ -2,6 +2,7 @@ import argparse
 import sys
 import time
 import hashlib
+import statistics
 
 import numpy as np
 
@@ -20,31 +21,82 @@ def main():
             continue
         prev_hsh = hsh
 
-        scene = cgs.CGSElement()
-        blocks = get_blocks(args.egsinp)
-
-        # assume phantom is centered at zfocus of first block
-        phantom = cgs.CGSSphere(2)
-        phantom.translate((0, 0, blocks[0]['zfocus'] * 10))
-        scene.add(phantom)
-
-        collimator = build_collimator(blocks)
-        scene.add(collimator)
-
-        output_path = args.egsinp.replace('.egsinp', '.scad')
-        print('Rendering to {}'.format(output_path))
-        open(output_path, 'w').write(scene.render())
+        try:
+            render(args)
+        except egsinp.ParseError:
+            pass
+        except Exception as e:
+            print('Could not render: {}'.format(e))
 
         if not args.watch:
             sys.exit()
+
+
+def render(args):
+
+    scene = cgs.CGSElement()
+    blocks = get_blocks(args.egsinp)
+    collimator_stats(blocks)
+
+    # assume phantom is centered at zfocus of first block
+    phantom = cgs.CGSSphere(args.target_diameter)
+    phantom.translate((0, 0, blocks[0]['zfocus']))
+    scene.add(phantom)
+
+    collimator = build_collimator(blocks)
+    scene.add(collimator)
+
+    output_path = args.egsinp.replace('.egsinp', '.scad')
+    print('Rendering collimator to {} with target size {:.2f} cm'.format(output_path, args.target_diameter))
+    open(output_path, 'w').write(scene.render())
+
+
+def polygon_area(corners):
+    n = len(corners)
+    area = 0.0
+    for i in range(n):
+        j = (i + 1) % n
+        area += corners[i][0] * corners[j][1]
+        area -= corners[j][0] * corners[i][1]
+    area = abs(area) / 2.0
+    return area
+
+
+def block_stats(block):
+    max_x = 0
+    max_y = 0
+    min_x = 0
+    min_y = 0
+    areas = []
+    for region in block['regions']:
+        area = polygon_area([(p['x'], p['y']) for p in region['points']])
+        max_x = max(max_x, max(p['x'] for p in region['points']))
+        max_y = max(max_y, max(p['y'] for p in region['points']))
+        min_x = min(min_x, min(p['x'] for p in region['points']))
+        min_y = min(min_y, min(p['y'] for p in region['points']))
+        areas.append(area)
+    print('\tNumber of regions: {}'.format(len(areas)))
+    print('\tAverage region area: {:.2f} cm^2'.format(statistics.mean(areas)))
+    print('\tTotal area: {:.2f} cm^2'.format(sum(areas)))
+    print('\tX extents: [{:.2f}, {:.2f}]'.format(min_x, max_x))
+    print('\tY extents: [{:.2f}, {:.2f}]'.format(min_y, max_y))
+    print('\tZ focus:', block['zfocus'])
+
+
+def collimator_stats(blocks):
+    print('First block:')
+    block_stats(blocks[0])
+    print('Last block:')
+    block_stats(blocks[-1])
+    print('Total blocks: {}'.format(len(blocks)))
 
 
 def build_collimator(blocks):
     element = cgs.CGSElement()
     for block in blocks:
         for region in block['regions']:
-            points = [(p['x'] * 10, p['y'] * 10) for p in region['points']]
-            points, faces = solid_region(points, block['zmin'] * 10, block['zmax'] * 10, block['zfocus'] * 10)
+            points = [(p['x'], p['y']) for p in region['points']]
+            points, faces = solid_region(points, block['zmin'], block['zmax'], block['zfocus'])
             element.primitives.append(('polyhedron', points, faces))
     return element
 
@@ -93,6 +145,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('egsinp')
     parser.add_argument('--watch', action='store_true')
+    parser.add_argument('--target-diameter', type=float, default=1.0)
     return parser.parse_args()
 
 

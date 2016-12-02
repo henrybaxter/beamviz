@@ -1,15 +1,18 @@
-# beamviz
+beamviz
+=======
 
-## Installation
+Installation
+------------
 
     pip3 install beamviz
 
-## Use
+Use
+----
 
     beamviz my.egsinp --watch
 
 Then 
 
- - install http://www.openscad.org/
- - open the SCAD file with OpenSCAD
- - under Design, choose the Automatic Reload and Preview
+- install http://www.openscad.org/
+- open the SCAD file with OpenSCAD
+- under Design, choose the Automatic Reload and Preview
