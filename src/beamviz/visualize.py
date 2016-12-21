@@ -76,7 +76,7 @@ def block_stats(block):
         min_y = min(min_y, min(p['y'] for p in region['points']))
         areas.append(area)
     print('\tNumber of regions: {}'.format(len(areas)))
-    print('\tAverage region area: {:.2f} cm^2'.format(statistics.mean(areas)))
+    print('\tAverage region area: {:.3f} cm^2'.format(statistics.mean(areas)))
     print('\tTotal area: {:.2f} cm^2'.format(sum(areas)))
     print('\tX extents: [{:.2f}, {:.2f}]'.format(min_x, max_x))
     print('\tY extents: [{:.2f}, {:.2f}]'.format(min_y, max_y))
