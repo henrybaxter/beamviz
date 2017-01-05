@@ -21,6 +21,7 @@ def main():
             continue
         prev_hsh = hsh
 
+        print('Parsing...')
         try:
             render(args)
         except egsinp.ParseError:
