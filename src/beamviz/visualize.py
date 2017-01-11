@@ -23,7 +23,7 @@ def main():
 
         print('Parsing...')
         try:
-            render(args)
+            render(args.egsinp, args.target_diameter)
         except egsinp.ParseError:
             pass
         except Exception as e:
@@ -33,22 +33,22 @@ def main():
             sys.exit()
 
 
-def render(args):
+def render(path, target_diameter):
 
     scene = cgs.CGSElement()
-    blocks = get_blocks(args.egsinp)
+    blocks = get_blocks(path)
     collimator_stats(blocks)
 
     # assume phantom is centered at zfocus of first block
-    phantom = cgs.CGSSphere(args.target_diameter)
+    phantom = cgs.CGSSphere(target_diameter)
     phantom.translate((0, 0, blocks[0]['zfocus']))
     scene.add(phantom)
 
     collimator = build_collimator(blocks)
     scene.add(collimator)
 
-    output_path = args.egsinp.replace('.egsinp', '.scad')
-    print('Rendering collimator to {} with target size {:.2f} cm'.format(output_path, args.target_diameter))
+    output_path = path.replace('.egsinp', '.scad')
+    print('Rendering collimator to {} with target size {:.2f} cm'.format(output_path, target_diameter))
     open(output_path, 'w').write(scene.render())
 
 
