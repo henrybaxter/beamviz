@@ -50,6 +50,7 @@ def render(path, target_diameter):
     output_path = path.replace('.egsinp', '.scad')
     print('Rendering collimator to {} with target size {:.2f} cm'.format(output_path, target_diameter))
     open(output_path, 'w').write(scene.render())
+    return output_path
 
 
 def polygon_area(corners):
